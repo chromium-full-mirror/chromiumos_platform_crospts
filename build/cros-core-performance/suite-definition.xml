@@ -1,0 +1,208 @@
+<?xml version="1.0"?>
+<!--Phoronix Test Suite v10.8.4-->
+<PhoronixTestSuite>
+  <SuiteInformation>
+    <Title>cros-core-performance</Title>
+    <Version>1.0.0</Version>
+    <TestType>System</TestType>
+    <Description>.</Description>
+    <Maintainer>Sangwhan Moon</Maintainer>
+  </SuiteInformation>
+  <Execute>
+    <Test>pts/mbw-1.0.0</Test>
+    <Arguments>-t0 1024</Arguments>
+    <Description>Test: Memory Copy - Array Size: 1024 MiB</Description>
+  </Execute>
+  <Execute>
+    <Test>pts/mbw-1.0.0</Test>
+    <Arguments>-t2 1024</Arguments>
+    <Description>Test: Memory Copy, Fixed Block Size - Array Size: 1024 MiB</Description>
+  </Execute>
+  <Execute>
+    <Test>pts/cachebench-1.1.2</Test>
+    <Arguments>-r</Arguments>
+    <Description>Test: Read</Description>
+  </Execute>
+  <Execute>
+    <Test>pts/cachebench-1.1.2</Test>
+    <Arguments>-w</Arguments>
+    <Description>Test: Write</Description>
+  </Execute>
+  <Execute>
+    <Test>pts/cachebench-1.1.2</Test>
+    <Arguments>-b</Arguments>
+    <Description>Test: Read / Modify / Write</Description>
+  </Execute>
+  <Execute>
+    <Test>pts/compress-7zip-1.10.0</Test>
+  </Execute>
+  <Execute>
+    <Test>pts/fio-1.15.0</Test>
+    <Arguments>randread sync 1 0 4k</Arguments>
+    <Description>Type: Random Read - Engine: Sync - Buffered: Yes - Direct: No - Block Size: 4KB - Disk Target: Default Test Directory</Description>
+  </Execute>
+  <Execute>
+    <Test>pts/fio-1.15.0</Test>
+    <Arguments>randread sync 1 0 512k</Arguments>
+    <Description>Type: Random Read - Engine: Sync - Buffered: Yes - Direct: No - Block Size: 512KB - Disk Target: Default Test Directory</Description>
+  </Execute>
+  <Execute>
+    <Test>pts/fio-1.15.0</Test>
+    <Arguments>randwrite sync 1 0 4k</Arguments>
+    <Description>Type: Random Write - Engine: Sync - Buffered: Yes - Direct: No - Block Size: 4KB - Disk Target: Default Test Directory</Description>
+  </Execute>
+  <Execute>
+    <Test>pts/fio-1.15.0</Test>
+    <Arguments>randwrite sync 1 0 512k</Arguments>
+    <Description>Type: Random Write - Engine: Sync - Buffered: Yes - Direct: No - Block Size: 512KB - Disk Target: Default Test Directory</Description>
+  </Execute>
+  <Execute>
+    <Test>pts/leveldb-1.0.2</Test>
+    <Arguments>--benchmarks=fillseq --num=500000</Arguments>
+    <Description>Benchmark: Sequential Fill</Description>
+  </Execute>
+  <Execute>
+    <Test>pts/leveldb-1.0.2</Test>
+    <Arguments>--benchmarks=fillrandom --num=100000</Arguments>
+    <Description>Benchmark: Random Fill</Description>
+  </Execute>
+  <Execute>
+    <Test>pts/leveldb-1.0.2</Test>
+    <Arguments>--benchmarks=overwrite --num=100000</Arguments>
+    <Description>Benchmark: Overwrite</Description>
+  </Execute>
+  <Execute>
+    <Test>pts/leveldb-1.0.2</Test>
+    <Arguments>--benchmarks=fillsync --num=1000000</Arguments>
+    <Description>Benchmark: Fill Sync</Description>
+  </Execute>
+  <Execute>
+    <Test>pts/leveldb-1.0.2</Test>
+    <Arguments>--benchmarks=readrandom --num=1000000</Arguments>
+    <Description>Benchmark: Random Read</Description>
+  </Execute>
+  <Execute>
+    <Test>pts/leveldb-1.0.2</Test>
+    <Arguments>--benchmarks=deleterandom --num=500000</Arguments>
+    <Description>Benchmark: Random Delete</Description>
+  </Execute>
+  <Execute>
+    <Test>pts/leveldb-1.0.2</Test>
+    <Arguments>--benchmarks=readhot --num=1000000</Arguments>
+    <Description>Benchmark: Hot Read</Description>
+  </Execute>
+  <Execute>
+    <Test>pts/leveldb-1.0.2</Test>
+    <Arguments>--benchmarks=seekrandom --num=1000000</Arguments>
+    <Description>Benchmark: Seek Random</Description>
+  </Execute>
+  <Execute>
+    <Test>pts/openssl-3.1.0</Test>
+    <Arguments>sha256</Arguments>
+    <Description>Algorithm: SHA256</Description>
+  </Execute>
+  <Execute>
+    <Test>pts/openssl-3.1.0</Test>
+    <Arguments>-evp aes-256-gcm</Arguments>
+    <Description>Algorithm: AES-256-GCM</Description>
+  </Execute>
+  <Execute>
+    <Test>pts/openssl-3.1.0</Test>
+    <Arguments>-evp chacha20-poly1305</Arguments>
+    <Description>Algorithm: ChaCha20-Poly1305</Description>
+  </Execute>
+  <Execute>
+    <Test>pts/tjbench-1.2.0</Test>
+    <Arguments>decompression-throughput</Arguments>
+    <Description>Test: Decompression Throughput</Description>
+  </Execute>
+  <Execute>
+    <Test>pts/compress-lz4-1.0.0</Test>
+    <Arguments>-b3 -e3</Arguments>
+    <Description>Compression Level: 3</Description>
+  </Execute>
+  <Execute>
+    <Test>pts/compress-lz4-1.0.0</Test>
+    <Arguments>-b9 -e9</Arguments>
+    <Description>Compression Level: 9</Description>
+  </Execute>
+  <Execute>
+    <Test>pts/encode-mp3-1.7.4</Test>
+  </Execute>
+  <Execute>
+    <Test>pts/vpxenc-3.2.0</Test>
+    <Arguments>--cpu-used=5 ~/Bosphorus_1920x1080_120fps_420_8bit_YUV.yuv --width=1920 --height=1080</Arguments>
+    <Description>Speed: Speed 5 - Input: Bosphorus 1080p</Description>
+  </Execute>
+  <Execute>
+    <Test>pts/tensorflow-lite-1.1.0</Test>
+    <Arguments>--graph=mobilenet_v1_1.0_224_quant.tflite</Arguments>
+    <Description>Model: Mobilenet Quant</Description>
+  </Execute>
+  <Execute>
+    <Test>pts/tensorflow-lite-1.1.0</Test>
+    <Arguments>--graph=inception_resnet_v2.tflite</Arguments>
+    <Description>Model: Inception ResNet V2</Description>
+  </Execute>
+  <Execute>
+    <Test>pts/rnnoise-1.0.2</Test>
+  </Execute>
+  <Execute>
+    <Test>pts/cython-bench-1.1.0</Test>
+    <Arguments>NQUEENS</Arguments>
+    <Description>Test: N-Queens</Description>
+  </Execute>
+  <Execute>
+    <Test>pts/pyperformance-1.0.2</Test>
+    <Arguments>float</Arguments>
+    <Description>Benchmark: float</Description>
+  </Execute>
+  <Execute>
+    <Test>pts/pyperformance-1.0.2</Test>
+    <Arguments>json_loads</Arguments>
+    <Description>Benchmark: json_loads</Description>
+  </Execute>
+  <Execute>
+    <Test>pts/pyperformance-1.0.2</Test>
+    <Arguments>pathlib</Arguments>
+    <Description>Benchmark: pathlib</Description>
+  </Execute>
+  <Execute>
+    <Test>pts/pyperformance-1.0.2</Test>
+    <Arguments>python_startup</Arguments>
+    <Description>Benchmark: python_startup</Description>
+  </Execute>
+  <Execute>
+    <Test>pts/pyperformance-1.0.2</Test>
+    <Arguments>regex_compile</Arguments>
+    <Description>Benchmark: regex_compile</Description>
+  </Execute>
+  <Execute>
+    <Test>pts/ctx-clock-1.0.0</Test>
+  </Execute>
+  <Execute>
+    <Test>pts/mutex-1.0.0</Test>
+    <Arguments>--benchmark_filter=benchmark_mutex_lock_unlock.std::mutex.</Arguments>
+    <Description>Benchmark: Mutex Lock Unlock std::mutex</Description>
+  </Execute>
+  <Execute>
+    <Test>pts/mutex-1.0.0</Test>
+    <Arguments>--benchmark_filter=benchmark_mutex_lock_unlock.pthread_mutex.</Arguments>
+    <Description>Benchmark: Mutex Lock Unlock pthread_mutex</Description>
+  </Execute>
+  <Execute>
+    <Test>pts/mutex-1.0.0</Test>
+    <Arguments>--benchmark_filter=benchmark_mutex_lock_unlock.spinlock.</Arguments>
+    <Description>Benchmark: Mutex Lock Unlock spinlock</Description>
+  </Execute>
+  <Execute>
+    <Test>pts/mutex-1.0.0</Test>
+    <Arguments>--benchmark_filter=benchmark_shared_mutex_lock_shared</Arguments>
+    <Description>Benchmark: Shared Mutex Lock Shared</Description>
+  </Execute>
+  <Execute>
+    <Test>pts/mutex-1.0.0</Test>
+    <Arguments>--benchmark_filter=benchmark_semaphore_release_and_acquire</Arguments>
+    <Description>Benchmark: Semaphore Release And Acquire</Description>
+  </Execute>
+</PhoronixTestSuite>

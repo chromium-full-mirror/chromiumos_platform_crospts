@@ -22,8 +22,8 @@ import archive
 
 
 INSTALLED_TESTS = "var/lib/phoronix-test-suite/installed-tests/pts"
-INSTALLED_TESTS_REQUIRES_LIST = "crospts-installed-tests-requires-list"
-REQUIRES_LIST_TARBALL = "INSTALLED_TESTS_REQUIRES_LIST_TARBALL"
+REQUIRES_LIST = "crospts-installed-tests-requires-list"
+REQUIRES_LIST_VERSION = "REQUIRES_LIST_VERSION"
 
 
 def generate_requires_list(output_dir, target_folder):
@@ -41,7 +41,7 @@ def generate_requires_list(output_dir, target_folder):
     Returns:
         The path to the temporary file containing the generated requires list.
     """
-    requires_list = output_dir / INSTALLED_TESTS_REQUIRES_LIST
+    requires_list = output_dir / REQUIRES_LIST
     with requires_list.open("w") as f:
         for file in target_folder.glob("**/*"):
             if file.is_file():
@@ -54,17 +54,17 @@ def generate_requires_list(output_dir, target_folder):
 def generate_tarball(target_file):
     """Generates a compressed tarball of the specified file.
 
-    This function generates tarball file and appends a timestamp to the tarball
+    This function generates tarball file and appends a version to the tarball
     filename.
 
     Args:
         target_file: Path of the target file to be archived.
 
     Returns:
-        The path to the generated tarball.
+        The path to the generated tarball and version.
     """
-    timestamp = datetime.datetime.now().strftime("%Y.%m.%d.%H%M%S")
-    tarball = Path(f"{target_file}-{timestamp}.tar.xz")
+    version = datetime.datetime.now().strftime("%Y.%m.%d.%H%M%S")
+    tarball = Path(f"{target_file}-{version}.tar.xz")
     work_dir = target_file.parents[0]
     subprocess.check_call(
         [
@@ -78,24 +78,24 @@ def generate_tarball(target_file):
             target_file.name,
         ]
     )
-    return tarball
+    return tarball, version
 
 
-def uprev_dockerfile(dockerfile, tarball):
+def uprev_dockerfile(dockerfile, version):
     """Uprevs the requires list tarball version from Dockerfile.
 
-    Update the Dockerfile by replacing the value of the `REQUIRES_LIST_TARBALL`
+    Update the Dockerfile by replacing the value of the `REQUIRES_LIST_VERSION`
     with the version of the provided tarball.
 
     Args:
         dockerfile: Path to the Dockerfile to be updated.
-        tarball: Path to the tarball whose version to be used.
+        version: String of the tarball version.
     """
-    pattern = f"ENV {REQUIRES_LIST_TARBALL}=.*"
+    pattern = f"ENV {REQUIRES_LIST_VERSION}=.*"
     with dockerfile.open("r+") as f:
         content = f.read()
         updated_content = re.sub(
-            pattern, f"ENV {REQUIRES_LIST_TARBALL}={tarball.name}", content
+            pattern, f"ENV {REQUIRES_LIST_VERSION}={version}", content
         )
         f.seek(0)
         f.write(updated_content)
@@ -140,14 +140,14 @@ def main():
 
     requires_list = generate_requires_list(args.output_dir, target_folder)
     print(f"Generated installed_tests requires list: {requires_list}")
-    tarball = generate_tarball(requires_list)
+    tarball, version = generate_tarball(requires_list)
     print(f"Generated installed_tests requires list tarball: {tarball}")
 
     if args.upload:
         archive.upload(tarball)
 
     if args.dockerfile:
-        uprev_dockerfile(args.dockerfile, tarball)
+        uprev_dockerfile(args.dockerfile, version)
 
 
 if __name__ == "__main__":
