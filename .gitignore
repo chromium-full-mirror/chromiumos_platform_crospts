@@ -1,0 +1,6 @@
+*~
+__pycache__
+*.egg-info
+*.pyc
+.vscode
+crospts-installed-tests-requires-list*
