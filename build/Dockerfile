@@ -40,4 +40,9 @@ RUN ${PTS_ROOT}/${PTS} install ${SUITE_NAME} && /pts_shrink.py \
     -r ${REQUIRES_LIST} -t /var/lib/${PTS}/installed-tests && \
     rm /pts_shrink.py ${REQUIRES_LIST}
 
+# Configure PTS to skip uploading benchmark results to OpenBenchmarking
+RUN sed -i 's/<AllowResultUploadsToOpenBenchmarking>TRUE/<AllowResultUploadsToOpenBenchmarking>FALSE/' \
+    /etc/phoronix-test-suite.xml && \
+    sed -i 's/<UploadResults>TRUE/<UploadResults>FALSE/' /etc/phoronix-test-suite.xml
+
 CMD ["${PTS_ROOT}/phoronix-test-suite", "shell"]
