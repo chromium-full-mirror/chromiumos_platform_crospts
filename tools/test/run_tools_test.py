@@ -75,9 +75,11 @@ def is_change_for_tools(files):
 def main():
     """Command-line front end to run unittest for tools."""
     parser = argparse.ArgumentParser(description="Run the unittest for tools")
-    parser.add_argument("files", nargs="*", help="List of files to check.")
+    parser.add_argument(
+        "--presubmit_files", nargs="*", help="List of presubmit files to check."
+    )
     args = parser.parse_args()
-    if not args.files or is_change_for_tools(args.files):
+    if not args.presubmit_files or is_change_for_tools(args.presubmit_files):
         run_all_unittests(TOOLS_ROOT)
 
 
