@@ -37,6 +37,7 @@ COPY pts_shrink.py /
 RUN ${PTS_ROOT}/${PTS} openbenchmarking-refresh
 # Install the suite and shrink the installed-tests based on REQUIRES_LIST
 RUN ${PTS_ROOT}/${PTS} install ${SUITE_NAME} && /pts_shrink.py \
-    -r ${REQUIRES_LIST} -t /var/lib/${PTS}/installed-tests
+    -r ${REQUIRES_LIST} -t /var/lib/${PTS}/installed-tests && \
+    rm /pts_shrink.py ${REQUIRES_LIST}
 
 CMD ["${PTS_ROOT}/phoronix-test-suite", "shell"]
