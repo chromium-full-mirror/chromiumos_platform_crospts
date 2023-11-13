@@ -14,6 +14,7 @@ import tarfile
 import tempfile
 import unittest
 
+import common
 import requires_gen
 
 
@@ -29,7 +30,7 @@ class TestRequiresGen(unittest.TestCase):
         # Create a temporary directory and a file inside it.
         # pylint: disable=line-too-long
         with tempfile.TemporaryDirectory() as src_dir, tempfile.TemporaryDirectory() as output_dir:
-            src_dir_path = Path(src_dir) / requires_gen.INSTALLED_TESTS
+            src_dir_path = Path(src_dir) / common.INSTALLED_TESTS
             src_dir_path.mkdir(parents=True)
             (src_dir_path / test_file).touch()
 
@@ -42,7 +43,7 @@ class TestRequiresGen(unittest.TestCase):
 
             # Check that the requires list contains the file path.
             with requires_list.open() as f:
-                expected_string = f"/{requires_gen.INSTALLED_TESTS}/{test_file}"
+                expected_string = f"/{common.INSTALLED_TESTS}/{test_file}"
                 self.assertIn(expected_string, f.read())
 
     def test_generate_tarball(self):

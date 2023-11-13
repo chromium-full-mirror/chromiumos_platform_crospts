@@ -19,9 +19,9 @@ import re
 import subprocess
 
 import archive
+import common
 
 
-INSTALLED_TESTS = "var/lib/phoronix-test-suite/installed-tests/pts"
 REQUIRES_LIST = "crospts-installed-tests-requires-list"
 REQUIRES_LIST_VERSION = "REQUIRES_LIST_VERSION"
 
@@ -46,7 +46,7 @@ def generate_requires_list(output_dir, target_folder):
         for file in target_folder.glob("**/*"):
             if file.is_file():
                 relative_path = file.relative_to(target_folder)
-                requires_file = f"/{INSTALLED_TESTS}/{relative_path}"
+                requires_file = f"/{common.INSTALLED_TESTS}/{relative_path}"
                 f.write(f"{requires_file}\n")
     return requires_list
 
@@ -136,7 +136,7 @@ def main():
     )
     args = parser.parse_args()
 
-    target_folder = args.root_folder / INSTALLED_TESTS
+    target_folder = args.root_folder / common.INSTALLED_TESTS
 
     requires_list = generate_requires_list(args.output_dir, target_folder)
     print(f"Generated installed_tests requires list: {requires_list}")
