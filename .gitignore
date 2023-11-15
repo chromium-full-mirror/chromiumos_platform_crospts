@@ -5,3 +5,4 @@ __pycache__
 .vscode
 crospts-installed-tests-requires-list*
 *.img
+*.tar.xz

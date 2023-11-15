@@ -8,10 +8,12 @@
 import argparse
 import contextlib
 import os
+from pathlib import Path
 import subprocess
 import sys
 import tempfile
 
+import archive
 import common
 
 
@@ -218,7 +220,7 @@ def main():
               /var/lib/phoronix-test-suite in chroot",
     )
     parser.add_argument(
-        "--noshrink",
+        "--no-shrink",
         action="store_false",
         dest="shrink",
         help=(
@@ -231,9 +233,22 @@ def main():
         default=common.PTSWORLD_TAG,
         help="Name of the docker image you want to export",
     )
+    parser.add_argument(
+        "-n",
+        "--no-upload",
+        dest="upload",
+        action="store_false",
+        help="Do not upload the artifact tarball.",
+    )
 
     args = parser.parse_args()
     convert(args.docker_image, args.base_img, args.pts_img, args.shrink)
+
+    if args.upload:
+        base_tarball, _ = archive.generate_tarball(Path(args.base_img))
+        pts_tarball, _ = archive.generate_tarball(Path(args.pts_img))
+        archive.upload(base_tarball, common.BUCKET_TEST_ASSETS_PUBLIC_URL)
+        archive.upload(pts_tarball, common.BUCKET_TEST_ASSETS_PUBLIC_URL)
 
 
 if __name__ == "__main__":
