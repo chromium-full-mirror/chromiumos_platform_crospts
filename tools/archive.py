@@ -2,14 +2,11 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-"""Archive module for uploading file to chromeos-localmirror bucket."""
+"""Archive module for uploading file to gs bucket."""
 
 import datetime
 from pathlib import Path
 import subprocess
-
-
-BUCKET_URL = "gs://chromeos-localmirror/distfiles"
 
 
 def generate_tarball(target_file):
@@ -42,14 +39,15 @@ def generate_tarball(target_file):
     return tarball, version
 
 
-def upload(archive_file):
-    """Uploads the provided file to the chromeos-localmirror bucket.
+def upload(archive_file, bucket):
+    """Uploads the provided file to the gs bucket.
 
     Upload the file using `gsutil` command-line tool to upload
     the file with the "public-read" access level.
 
     Args:
         archive_file: Path to the archive file to be uploaded.
+        bucket: String to the gs bucket to upload.
     """
     if not archive_file:
         raise TypeError("Archive file not set")
@@ -64,6 +62,6 @@ def upload(archive_file):
         "-a",
         "public-read",
         str(archive_file),
-        f"{BUCKET_URL}/{archive_file.name}",
+        f"{bucket}/{archive_file.name}",
     ]
     subprocess.check_call(cmd)

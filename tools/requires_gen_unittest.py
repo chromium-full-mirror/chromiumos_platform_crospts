@@ -10,7 +10,6 @@ Usage:
 """
 
 from pathlib import Path
-import tarfile
 import tempfile
 import unittest
 

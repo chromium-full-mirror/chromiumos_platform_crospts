@@ -16,6 +16,7 @@ import unittest
 import unittest.mock
 
 import archive
+import common
 
 
 class TestArchive(unittest.TestCase):
@@ -33,7 +34,8 @@ class TestArchive(unittest.TestCase):
 
         # Patch the `gsutil` command-line tool.
         with unittest.mock.patch("subprocess.check_call") as mock_check_call:
-            archive.upload(file_mock)
+            bucket = common.BUCKET_LOCALMIRROT_URL
+            archive.upload(file_mock, bucket)
 
             # Verify that the `gsutil` command-line tool was called with the
             # correct arguments.
@@ -45,7 +47,7 @@ class TestArchive(unittest.TestCase):
                     "-a",
                     "public-read",
                     str(file_mock),
-                    f"{archive.BUCKET_URL}/{file_mock.name}",
+                    f"{bucket}/{file_mock.name}",
                 ]
             )
 
@@ -60,7 +62,7 @@ class TestArchive(unittest.TestCase):
         with unittest.mock.patch("subprocess.check_call") as mock_check_call:
             # Call the `upload` function.
             with self.assertRaises(FileNotFoundError):
-                archive.upload(file_mock)
+                archive.upload(file_mock, common.BUCKET_LOCALMIRROT_URL)
 
             # Verify that the `gsutil` command-line tool was not called.
             mock_check_call.assert_not_called()

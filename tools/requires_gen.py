@@ -112,7 +112,7 @@ def main():
     print(f"Generated installed_tests requires list tarball: {tarball}")
 
     if args.upload:
-        archive.upload(tarball)
+        archive.upload(tarball, common.BUCKET_LOCALMIRROT_URL)
 
     if args.dockerfile:
         uprev_dockerfile(args.dockerfile, version)

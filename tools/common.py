@@ -10,5 +10,11 @@ PTSWORLD_TAG = "ptsworld"
 PTS_DATA_PATH = "var/lib/phoronix-test-suite"
 INSTALLED_TESTS = PTS_DATA_PATH + "/installed-tests/pts"
 
+# GS bucket
+BUCKET_LOCALMIRROT_URL = "gs://chromeos-localmirror/distfiles"
+BUCKET_TEST_ASSETS_PUBLIC_URL = (
+    "gs://chromiumos-test-assets-public/tast/cros/crospts"
+)
+
 # DLC
 DLC_NAME = PTSWORLD_TAG
