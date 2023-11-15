@@ -13,10 +13,8 @@ used to identify and managed desired files within a directory tree.
 """
 
 import argparse
-import datetime
 from pathlib import Path
 import re
-import subprocess
 
 import archive
 import common
@@ -49,36 +47,6 @@ def generate_requires_list(output_dir, target_folder):
                 requires_file = f"/{common.INSTALLED_TESTS}/{relative_path}"
                 f.write(f"{requires_file}\n")
     return requires_list
-
-
-def generate_tarball(target_file):
-    """Generates a compressed tarball of the specified file.
-
-    This function generates tarball file and appends a version to the tarball
-    filename.
-
-    Args:
-        target_file: Path of the target file to be archived.
-
-    Returns:
-        The path to the generated tarball and version.
-    """
-    version = datetime.datetime.now().strftime("%Y.%m.%d.%H%M%S")
-    tarball = Path(f"{target_file}-{version}.tar.xz")
-    work_dir = target_file.parents[0]
-    subprocess.check_call(
-        [
-            "tar",
-            "-Ipixz",
-            "-c",
-            "-f",
-            str(tarball),
-            "-C",
-            str(work_dir),
-            target_file.name,
-        ]
-    )
-    return tarball, version
 
 
 def uprev_dockerfile(dockerfile, version):
@@ -140,7 +108,7 @@ def main():
 
     requires_list = generate_requires_list(args.output_dir, target_folder)
     print(f"Generated installed_tests requires list: {requires_list}")
-    tarball, version = generate_tarball(requires_list)
+    tarball, version = archive.generate_tarball(requires_list)
     print(f"Generated installed_tests requires list tarball: {tarball}")
 
     if args.upload:

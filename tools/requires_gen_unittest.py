@@ -46,24 +46,6 @@ class TestRequiresGen(unittest.TestCase):
                 expected_string = f"/{common.INSTALLED_TESTS}/{test_file}"
                 self.assertIn(expected_string, f.read())
 
-    def test_generate_tarball(self):
-        """Tests the `test_generate_tarball` function."""
-        # Create a temporary file.
-        with tempfile.NamedTemporaryFile() as f:
-            f_path = Path(f.name)
-            # Generate a tarball of the temporary file.
-            tarball, version = requires_gen.generate_tarball(f_path)
-
-            # Check that the tarball exists.
-            self.assertTrue(tarball.exists())
-
-            # Check that the version match the version format in
-            # %Y.%m.%d.%H%M%S.
-            self.assertRegex(version, r"\d{4}\.\d{2}\.\d{2}\.\d{6}")
-            # Check that the tarball contains the temporary file.
-            with tarfile.open(tarball) as tf:
-                self.assertIn(f_path.name, tf.getnames())
-
     def test_uprev_dockerfile(self):
         """Tests the `test_uprev_dockerfile` function."""
         new_version = "2023.01.01.112233"

@@ -9,13 +9,16 @@ Usage:
     python3 archive_unittest.py
 """
 
+from pathlib import Path
+import tarfile
+import tempfile
 import unittest
 import unittest.mock
 
 import archive
 
 
-class TestUpload(unittest.TestCase):
+class TestArchive(unittest.TestCase):
     """Tests the archive module.
 
     This class contains unit tests for the `archive` module.
@@ -61,6 +64,24 @@ class TestUpload(unittest.TestCase):
 
             # Verify that the `gsutil` command-line tool was not called.
             mock_check_call.assert_not_called()
+
+    def test_generate_tarball(self):
+        """Tests the `test_generate_tarball` function."""
+        # Create a temporary file.
+        with tempfile.NamedTemporaryFile() as f:
+            f_path = Path(f.name)
+            # Generate a tarball of the temporary file.
+            tarball, version = archive.generate_tarball(f_path)
+
+            # Check that the tarball exists.
+            self.assertTrue(tarball.exists())
+
+            # Check that the version match the version format in
+            # %Y.%m.%d.%H%M%S.
+            self.assertRegex(version, r"\d{4}\.\d{2}\.\d{2}\.\d{6}")
+            # Check that the tarball contains the temporary file.
+            with tarfile.open(tarball) as tf:
+                self.assertIn(f_path.name, tf.getnames())
 
 
 if __name__ == "__main__":
