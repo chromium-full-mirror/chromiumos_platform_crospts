@@ -80,7 +80,7 @@ class TestArchive(unittest.TestCase):
 
             # Check that the version match the version format in
             # %Y.%m.%d.%H%M%S.
-            self.assertRegex(version, r"\d{4}\.\d{2}\.\d{2}\.\d{6}")
+            self.assertRegex(version, r"\d{8}\.\d{6}")
             # Check that the tarball contains the temporary file.
             with tarfile.open(tarball) as tf:
                 self.assertIn(f_path.name, tf.getnames())

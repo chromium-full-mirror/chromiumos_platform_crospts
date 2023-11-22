@@ -21,7 +21,7 @@ def generate_tarball(target_file):
     Returns:
         The path to the generated tarball and version.
     """
-    version = datetime.datetime.now().strftime("%Y.%m.%d.%H%M%S")
+    version = datetime.datetime.now().strftime("%Y%m%d.%H%M%S")
     tarball = Path(f"{target_file}-{version}.tar.xz")
     work_dir = target_file.parents[0]
     subprocess.check_call(
