@@ -2,11 +2,20 @@
  # Use of this source code is governed by a BSD-style license that can be
  # found in the LICENSE file.
 
-FROM ubuntu:22.04
-ARG DEBIAN_FRONTEND=noninteractive
-RUN apt-get update && apt-get install -y \
+# Use param `--build-arg ARCH=arm64v8/` for docker build to build ARM image
+ARG ARCH=
+FROM ${ARCH}ubuntu:22.04
+
+# When build ARM64 image on x86 system, it runs the ARM64 docker by qemu.
+# But the apt-get install hits the Segmentation fault when processing libc-bin.
+# The workaround is move out the libc-bin.* files and run the apt-get install.
+# The libc-bin* files will be restored after apt-get install complete.
+RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
+    mkdir /tmp/backup && mv /var/lib/dpkg/info/libc-bin.* /tmp/backup && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y \
     unzip php-cli apt-utils mesa-utils php-xml git-core apt-file sudo wget \
-    python3 linux-libc-dev
+    python3 linux-libc-dev ; \
+    mv /tmp/backup/* /var/lib/dpkg/info/
 RUN apt-file update
 
 # Download and extract the Phoronix Test Suite tarball

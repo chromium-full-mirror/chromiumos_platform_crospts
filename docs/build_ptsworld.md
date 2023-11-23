@@ -23,7 +23,7 @@ docker build -t ptsworld-x86_64 build
 Invoke the command to build arm64 image.
 
 ```
-docker build --platform linux/arm64 -t ptsworld-arm64 build
+docker build -t ptsworld-arm64 build --build-arg ARCH=arm64v8/
 ```
 
 ## Upload the PTSWorld to gs bucket
