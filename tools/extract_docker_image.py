@@ -7,8 +7,11 @@
 
 import argparse
 import contextlib
+import hashlib
+import json
 import os
 from pathlib import Path
+import re
 import subprocess
 import sys
 import tempfile
@@ -19,6 +22,19 @@ import common
 
 # Minimal ext4 image without journal is 128KB
 MIN_EXT4_SIZE = 131072
+EXTERNAL_DATA_PATH = (
+    Path(__file__).parents[2]
+    / "tast-tests"
+    / "src"
+    / "go.chromium.org"
+    / "tast-tests"
+    / "cros"
+    / "local"
+    / "bundles"
+    / "cros"
+    / "crospts"
+    / "data"
+)
 
 
 @contextlib.contextmanager
@@ -70,6 +86,34 @@ def make_ext4_image(image, size):
             image,
         ]
     )
+
+
+def uprev_tast_external_data(external_data, package):
+    """Updates the tast external data file with the package information.
+
+    The tast external data is json format data which stores url, size and
+    sha256sum information. This function get the package data information and
+    update to external data.
+
+    Args:
+        external_data: Path to the external data file.
+        package: Path to the package file.
+    """
+    with package.open("rb") as p:
+        data = p.read()
+        sha256sum = hashlib.sha256(data).hexdigest()
+
+    meta = json.dumps(
+        {
+            "url": f"{common.BUCKET_TEST_ASSETS_PUBLIC_URL}/{package.name}",
+            "size": os.stat(package).st_size,
+            "sha256sum": sha256sum,
+        },
+        indent=4,
+    )
+
+    with external_data.open("w") as f:
+        f.write(meta)
 
 
 def create_fs_image(
@@ -240,15 +284,36 @@ def main():
         action="store_false",
         help="Do not upload the artifact tarball.",
     )
+    parser.add_argument(
+        "--no-uprev",
+        dest="uprev",
+        action="store_false",
+        help="Do not uprev the external data in crospts tast test.",
+    )
 
     args = parser.parse_args()
-    convert(args.docker_image, args.base_img, args.pts_img, args.shrink)
 
+    convert(args.docker_image, args.base_img, args.pts_img, args.shrink)
+    base_tarball, _ = archive.generate_tarball(Path(args.base_img))
+    pts_tarball, _ = archive.generate_tarball(Path(args.pts_img))
     if args.upload:
-        base_tarball, _ = archive.generate_tarball(Path(args.base_img))
-        pts_tarball, _ = archive.generate_tarball(Path(args.pts_img))
         archive.upload(base_tarball, common.BUCKET_TEST_ASSETS_PUBLIC_URL)
         archive.upload(pts_tarball, common.BUCKET_TEST_ASSETS_PUBLIC_URL)
+
+    if args.uprev:
+        strip_version_pattern = (r"-\d{8}.\d{6}",)
+        base_external_data_name = (
+            re.sub(strip_version_pattern, "", base_tarball.name) + ".external"
+        )
+        pts_external_data_name = (
+            re.sub(strip_version_pattern, "", pts_tarball.name) + ".external"
+        )
+        uprev_tast_external_data(
+            EXTERNAL_DATA_PATH / f"{base_external_data_name}", base_tarball
+        )
+        uprev_tast_external_data(
+            EXTERNAL_DATA_PATH / f"{pts_external_data_name}", pts_tarball
+        )
 
 
 if __name__ == "__main__":

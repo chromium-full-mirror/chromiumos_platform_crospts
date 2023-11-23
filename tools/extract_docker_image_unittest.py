@@ -9,11 +9,13 @@ Usage:
     python3 extract_docker_image_unittest.py
 """
 
+import json
 import os
 from pathlib import Path
 import unittest
 import unittest.mock
 
+import common
 import extract_docker_image
 
 
@@ -78,6 +80,31 @@ class TestFileSystemImage(unittest.TestCase):
                     os.path.getsize(target),
                     extract_docker_image.MIN_EXT4_SIZE + 1024,
                 )
+
+    def test_uprev_external_data(self):
+        """Tests the `uprev_external_data` function."""
+        test_package = Path("/tmp/test_package")
+        external_data = Path("/tmp/external_data")
+        expected_size = 1024
+        # The sha256sum of zeros filled file in 1024 bytes.
+        expected_sha256sum = (
+            "5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef"
+        )
+        with test_package.open("wb") as f:
+            f.write(b"\x00" * expected_size)
+
+        extract_docker_image.uprev_tast_external_data(
+            external_data, test_package
+        )
+
+        with external_data.open("r", encoding="utf-8") as f:
+            json_object = json.load(f)
+            self.assertEqual(
+                json_object["url"],
+                f"{common.BUCKET_TEST_ASSETS_PUBLIC_URL}/{test_package.name}",
+            )
+            self.assertEqual(json_object["size"], expected_size)
+            self.assertEqual(json_object["sha256sum"], expected_sha256sum)
 
 
 # TODO(darrenwu): Add unittest for docker container functions.
