@@ -41,8 +41,13 @@ RUN ${PTS_ROOT}/${PTS} install ${SUITE_NAME} && /pts_shrink.py \
     rm /pts_shrink.py ${REQUIRES_LIST}
 
 # Configure PTS to skip uploading benchmark results to OpenBenchmarking
+# Configure PTS to no prompt when running PTS batch mode test, which is no user interaction by default.
 RUN sed -i 's/<AllowResultUploadsToOpenBenchmarking>TRUE/<AllowResultUploadsToOpenBenchmarking>FALSE/' \
     /etc/phoronix-test-suite.xml && \
-    sed -i 's/<UploadResults>TRUE/<UploadResults>FALSE/' /etc/phoronix-test-suite.xml
+    sed -i 's/<UploadResults>TRUE/<UploadResults>FALSE/' /etc/phoronix-test-suite.xml && \
+    sed -i 's/<PromptForTestIdentifier>TRUE/<PromptForTestIdentifier>FALSE/' /etc/phoronix-test-suite.xml && \
+    sed -i 's/<PromptForTestDescription>TRUE/<PromptForTestDescription>FALSE/' /etc/phoronix-test-suite.xml && \
+    sed -i 's/<PromptSaveName>TRUE/<PromptSaveName>FALSE/' /etc/phoronix-test-suite.xml && \
+    sed -i 's/<Configured>FALSE/<Configured>TRUE/' /etc/phoronix-test-suite.xml
 
 CMD ["${PTS_ROOT}/phoronix-test-suite", "shell"]
