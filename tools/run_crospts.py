@@ -10,6 +10,8 @@ and upload the results to the Google Cloud bucket or CNS for internal user.
 """
 
 import argparse
+import datetime
+import os
 from pathlib import Path
 import re
 import subprocess
@@ -50,12 +52,58 @@ def list_crospts_tests(dut):
             print(f"   {test}\t({supported_arch} only)")
 
 
+def get_target_arch(dut):
+    """Get the target architecture in result string x86 or arm64."""
+    ssh_command = ["ssh", dut, "uname", "-m"]
+    arch = subprocess.run(ssh_command, stdout=subprocess.PIPE, check=True)
+    if arch.stdout.decode("utf-8").strip() == "x86_64":
+        return "x86"
+    elif arch.stdout.decode("utf-8").strip() == "aarch64":
+        return "arm64"
+
+    raise RuntimeError("Unknown target architecture.")
+
+
+def tast_test_name(test_name, arch):
+    """Return the tast test name."""
+    return f"crospts.PerfSuite.{test_name}_cros_{arch}"
+
+
+def run_crospts_tests(dut, tests):
+    """Run the CrosPTS tests."""
+    tast_tests = []
+    arch = get_target_arch(dut)
+
+    if tests == "all":
+        tast_tests = [tast_test_name("*", arch)]
+    else:
+        tast_tests = [tast_test_name(test, arch) for test in tests.split(",")]
+
+    results_dir = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    tast_run_command = [
+        "cros_sdk",
+        "tast",
+        "run",
+        "-resultsdir",
+        f"/tmp/tast/results/{results_dir}",
+        dut,
+    ] + tast_tests
+    subprocess.run(tast_run_command, check=True)
+
+
 def parse_arguments(argv):
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(description=__doc__)
     group = parser.add_mutually_exclusive_group()
     group.add_argument(
         "-l", "--list", action="store_true", help="List the available tests"
+    )
+    group.add_argument(
+        "-p",
+        "--pts",
+        metavar="tests",
+        type=str,
+        help="Specify the test(s) to run (comma-separated or 'all')",
     )
 
     parser.add_argument(
@@ -70,6 +118,9 @@ def main(argv):
 
     if args.list:
         list_crospts_tests(args.target)
+        return 0
+
+    run_crospts_tests(args.target, args.pts)
 
 
 if __name__ == "__main__":
