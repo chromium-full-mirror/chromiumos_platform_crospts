@@ -121,6 +121,7 @@ and upload the results to the Google Cloud bucket or CNS for internal user.
 
 import argparse
 import datetime
+import getpass
 import json
 import math
 import os
@@ -138,6 +139,8 @@ from google.oauth2 import service_account  # pylint:disable=import-error
 THIS_FILE = Path(__file__).resolve()
 CHROMIUMOS_ROOT = THIS_FILE.parent.parent.parent.parent.parent
 CHROMIUMOS_RESULTS_DIR = CHROMIUMOS_ROOT / "out/tmp/tast/results"
+
+CNS_ROOT = "/cns/yb-d/home/crospts-storage/crospts"
 
 
 # List the available tests
@@ -228,8 +231,10 @@ def tar_results(results_dir, target_dir):
 
 def get_uploader_info(remote_storage):
     """Return the uploader group and uploader name."""
-    # TODO(darrenwu): Add CNS uploader
-    if remote_storage != "cns":
+    if remote_storage == "cns":
+        # The uploader is ldap for internal user
+        return "internal", getpass.getuser()
+    else:
         # For partner, the remote storage is GS bucket
         # The uploader is the last part of the bucket name, i.e. the partner
         # name e.g. chromeos-moblab-<partner>
@@ -381,9 +386,7 @@ def generate_results_charts_csv(
     results_chart_data = parse_results_chart_json(results_dir_path)
     # The uploaded data will be synced to archive folder in CNS.
     # See the go/crospts-data-pipeline-dd for the details.
-    cns_path = (
-        f"/cns/yb-d/home/crospts-storage/crospts/{uploader_group}/archive"
-    )
+    cns_path = f"{CNS_ROOT}/{uploader_group}/archive"
     # The archive_path is the tarball file in final storage location.
     archive_path = f"{cns_path}/{uploader}/{tarball_name}"
     results_chart_csv_path = target_dir_path / "results-chart.csv"
@@ -460,6 +463,76 @@ def upload_results_to_gs_bucket(
     blob.upload_from_filename(results_chart_csv_path)
 
 
+def check_gcert_status(remaining=None):
+    """Check the gcert status by gcertstatus command."""
+    if remaining:
+        return subprocess.run(
+            ["gcertstatus", f"--check_remaining={remaining}"],
+            check=False,
+        )
+    else:
+        return subprocess.run(["gcertstatus"], check=False)
+
+
+def validate_cns_access():
+    """Validate the CNS access permissions."""
+
+    print("Validating CNS access permissions...")
+    # The crospts may take 4 hours to run the full tests. Check the gcert
+    # remaining time in 5 hours to ensure the CNS accessibility.
+    result = check_gcert_status(remaining="5h")
+    if result.returncode != 0:
+        print("Refreshing gcert...")
+        subprocess.run(["gcert"], check=True)
+    # Try to write an one hour TTL (Time To Live) test file to validate the
+    # write permission The test file will be deleted after 1 hour.
+    cns_internal = f"{CNS_ROOT}/internal/"
+    cns_test_file = (
+        f"{cns_internal}"
+        + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        + "_test-file%ttl=1h"
+    )
+    try:
+        subprocess.run(
+            ["fileutil", "touch", cns_test_file],
+            stdout=subprocess.PIPE,
+            check=True,
+        )
+    except Exception as exe:
+        raise PermissionError(
+            f"No permission to write CNS path: {cns_internal}."
+            "Please contact cros-core-systems-perf@google.com,"
+            "if you think this is a mistake."
+        ) from exe
+
+
+def upload_results_to_cns(uploader, tarball_path, results_chart_csv_path):
+    """Upload the results to CNS."""
+    print("Checking gcert status...")
+    result = check_gcert_status()
+    if result.returncode != 0:
+        print("Refreshing gcert...")
+        subprocess.run(["gcert"], check=True)
+
+    archive_dir = f"{CNS_ROOT}/internal/archive/{uploader}"
+    remote_path = f"{archive_dir}/{tarball_path.name}"
+    print(f"Uploading {tarball_path} to {remote_path}...")
+    cmd = f"fileutil test -d {archive_dir} || fileutil mkdir {archive_dir}"
+    subprocess.run(cmd, check=True, shell=True)
+    cmd = ["fileutil", "cp", tarball_path, remote_path]
+    subprocess.run(cmd, check=True)
+
+    results_dir = f"{CNS_ROOT}/internal/results"
+    # Extract the datetime string from the tarball_path
+    tb_name = tarball_path.name.split(".")[0]
+    remote_path = (
+        f"{results_dir}/{uploader}_{tb_name}_{results_chart_csv_path.name}"
+    )
+    print(f"Uploading {results_chart_csv_path} to {remote_path}...")
+    cmd = ["fileutil", "cp", results_chart_csv_path, remote_path]
+    subprocess.run(cmd, check=True)
+
+
 def parse_arguments(argv):
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(description=__doc__)
@@ -504,9 +577,11 @@ def main(argv):
         return 0
 
     if args.upload:
-        # TODO(darrenwu): Add uploading to CNS
-        credential = load_credential(args.credential)
-        validate_credential(args.upload, credential, args.credential)
+        if args.upload == "cns":  # Upload to CNS for internal
+            validate_cns_access()
+        else:  # Upload to the GS bucket for partners
+            credential = load_credential(args.credential)
+            validate_credential(args.upload, credential, args.credential)
 
     results_dir_path = Path(run_crospts_tests(args.target, args.pts))
 
@@ -525,14 +600,18 @@ def main(argv):
             tarball_path.name,
         )
 
-        # TODO(darrenwu): Add uploading to CNS
-        upload_results_to_gs_bucket(
-            args.upload,
-            uploader,
-            credential,
-            tarball_path,
-            results_chart_csv_path,
-        )
+        if args.upload == "cns":
+            upload_results_to_cns(
+                uploader, tarball_path, results_chart_csv_path
+            )
+        else:
+            upload_results_to_gs_bucket(
+                args.upload,
+                uploader,
+                credential,
+                tarball_path,
+                results_chart_csv_path,
+            )
         shutil.rmtree(tmp_dir_path)
 
 
