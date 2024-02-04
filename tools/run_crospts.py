@@ -320,6 +320,9 @@ def parse_results_chart_json(results_dir_path):
         if result_path.is_file():
             with result_path.open("r", encoding="utf-8") as f:
                 data = json.load(f)
+                if len(data) == 0:
+                    print(f"Warn: No results be produced in {test_dir.name}")
+                    continue
                 # The test name is the first key in the json file.
                 test_name = list(data.keys())[0]
                 # The summary key contains the test result.
@@ -384,6 +387,11 @@ def generate_results_charts_csv(
     sku = "_".join(lscpu["cpu_model"].split() + [f"{dut_info['memory_gb']}GB"])
     lsb_release = parse_lsb_release(results_dir_path)
     results_chart_data = parse_results_chart_json(results_dir_path)
+
+    if len(results_chart_data) == 0:
+        print("Warn: No results chart data be found.")
+        return ""
+
     # The uploaded data will be synced to archive folder in CNS.
     # See the go/crospts-data-pipeline-dd for the details.
     cns_path = f"{CNS_ROOT}/{uploader_group}/archive"
@@ -599,6 +607,10 @@ def main(argv):
             uploader,
             tarball_path.name,
         )
+
+        if results_chart_csv_path == "":
+            print("No test results be found. Skip uploading test data.")
+            return -1
 
         if args.upload == "cns":
             upload_results_to_cns(
