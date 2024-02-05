@@ -120,6 +120,7 @@ and upload the results to the Google Cloud bucket or CNS for internal user.
 # [VPYTHON:END]
 
 import argparse
+import contextlib
 import datetime
 import getpass
 import json
@@ -595,36 +596,38 @@ def main(argv):
 
     if args.upload:
         tmp_dir_path = Path(tempfile.mkdtemp())
-        uploader_group, uploader = get_uploader_info(args.upload)
-        tarball_path = tar_results(results_dir_path, tmp_dir_path)
-        # TODO(darrenwu): The os_type is hardcoded to cros. Add arcvm once
-        # it's supported.
-        results_chart_csv_path = generate_results_charts_csv(
-            results_dir_path,
-            tmp_dir_path,
-            "cros",
-            uploader_group,
-            uploader,
-            tarball_path.name,
-        )
+        with contextlib.ExitStack() as stack:
+            stack.callback(shutil.rmtree, tmp_dir_path)
 
-        if results_chart_csv_path == "":
-            print("No test results be found. Skip uploading test data.")
-            return -1
-
-        if args.upload == "cns":
-            upload_results_to_cns(
-                uploader, tarball_path, results_chart_csv_path
-            )
-        else:
-            upload_results_to_gs_bucket(
-                args.upload,
+            uploader_group, uploader = get_uploader_info(args.upload)
+            tarball_path = tar_results(results_dir_path, tmp_dir_path)
+            # TODO(darrenwu): The os_type is hardcoded to cros. Add arcvm once
+            # it's supported.
+            results_chart_csv_path = generate_results_charts_csv(
+                results_dir_path,
+                tmp_dir_path,
+                "cros",
+                uploader_group,
                 uploader,
-                credential,
-                tarball_path,
-                results_chart_csv_path,
+                tarball_path.name,
             )
-        shutil.rmtree(tmp_dir_path)
+
+            if results_chart_csv_path == "":
+                print("No test results be found. Skip uploading test data.")
+                return -1
+
+            if args.upload == "cns":
+                upload_results_to_cns(
+                    uploader, tarball_path, results_chart_csv_path
+                )
+            else:
+                upload_results_to_gs_bucket(
+                    args.upload,
+                    uploader,
+                    credential,
+                    tarball_path,
+                    results_chart_csv_path,
+                )
 
 
 if __name__ == "__main__":
