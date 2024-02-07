@@ -144,6 +144,13 @@ CHROMIUMOS_RESULTS_DIR = CHROMIUMOS_ROOT / "out/tmp/tast/results"
 CNS_ROOT = "/cns/yb-d/home/crospts-storage/crospts"
 
 
+def flash_image(dut, version):
+    """Flash image on to DUT."""
+    flash = CHROMIUMOS_ROOT / "src/platform/dev/contrib/fflash/fflash"
+    flash_cmd = [flash, dut, "--clobber-stateful=yes", f"-{version}"]
+    subprocess.run(flash_cmd, check=True)
+
+
 # List the available tests
 def list_crospts_tests(dut):
     """List the available CrosPTS tests."""
@@ -617,6 +624,13 @@ def parse_arguments(argv):
         default="~/.service_account.json",
         help="Path to the credential file",
     )
+    parser.add_argument(
+        "-f",
+        "--flash",
+        metavar="version",
+        help="The release image version to flash to the DUT."
+        " ex: R122 or R122-15753.29.0",
+    )
     return parser.parse_args(argv)
 
 
@@ -635,8 +649,10 @@ def main(argv):
             credential = load_credential(args.credential)
             validate_credential(args.upload, credential, args.credential)
 
-    results_dir_path = Path(run_crospts_tests(args.target, args.pts))
+    if args.flash:
+        flash_image(args.target, args.flash)
 
+    results_dir_path = Path(run_crospts_tests(args.target, args.pts))
     if args.upload:
         tmp_dir_path = Path(tempfile.mkdtemp())
         with contextlib.ExitStack() as stack:
