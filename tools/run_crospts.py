@@ -186,6 +186,20 @@ def get_target_arch(dut):
     raise RuntimeError("Unknown target architecture.")
 
 
+def is_4g_ram(dut):
+    """Detect DUT is 4GB RAM."""
+    ssh_command = ["ssh", dut, "cat", "/proc/meminfo"]
+    meminfo = subprocess.run(
+        ssh_command, stdout=subprocess.PIPE, check=True
+    ).stdout.decode("utf-8")
+    match = re.search(r"MemTotal:\s+(\d+) kB", meminfo)
+    if match:
+        mem_size = int(match.group(1))
+    else:
+        raise RuntimeError("No MemTotal value be found")
+    return mem_size < 4000000
+
+
 def tast_test_name(test_name, arch):
     """Return the tast test name."""
     return f"crospts.PerfSuite.{test_name}_cros_{arch}"
@@ -197,7 +211,29 @@ def run_crospts_tests(dut, tests):
     arch = get_target_arch(dut)
 
     if tests == "all":
-        tast_tests = [tast_test_name("*", arch)]
+        # TODO(darrenwu): Add back the mbw and compress lz4 tests for 4GB DUT.
+        # The crospts test encounters a stuck state when run on DUT with 4GB of
+        # RAM during testing compress lz4(b/316035777) and mbw (b/315897893)
+        # tests. Remove these tests when run all tests for 4GB RAM DUT.
+        if is_4g_ram(dut):
+            tast_run_command = [
+                "cros_sdk",
+                "tast",
+                "list",
+                dut,
+                tast_test_name("*", arch),
+            ]
+            crospts_list = subprocess.run(
+                tast_run_command, stdout=subprocess.PIPE, check=True
+            )
+            tast_tests = crospts_list.stdout.decode("utf-8").splitlines()
+            tast_tests = [
+                test
+                for test in tast_tests
+                if "lz4" not in test and "mbw" not in test
+            ]
+        else:
+            tast_tests = [tast_test_name("*", arch)]
     else:
         tast_tests = [tast_test_name(test, arch) for test in tests.split(",")]
 
