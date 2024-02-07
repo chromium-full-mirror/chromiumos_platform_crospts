@@ -312,22 +312,14 @@ def parse_lsb_release(results_dir_path):
     }
 
 
-def parse_results_chart_json(results_dir_path):
-    """Parse the results-chart.json files from tests folder."""
+def extract_results_chart(results_chart_json_path):
+    """Extract the results-chart.json file to list of dictionaries."""
     results_chart_data = []
-    tests_path = CHROMIUMOS_RESULTS_DIR / results_dir_path / "tests"
-    for test_dir in tests_path.iterdir():
-        result_path = tests_path / test_dir / "results-chart.json"
-        if result_path.is_file():
-            with result_path.open("r", encoding="utf-8") as f:
-                data = json.load(f)
-                if len(data) == 0:
-                    print(f"Warn: No results be produced in {test_dir.name}")
-                    continue
-                # The test name is the first key in the json file.
-                test_name = list(data.keys())[0]
-                # The summary key contains the test result.
-                summary = data[test_name]["summary"]
+    if results_chart_json_path.is_file():
+        with results_chart_json_path.open("r", encoding="utf-8") as f:
+            data = json.load(f)
+            for test_name, results in data.items():
+                summary = results["summary"]
                 results_chart_data.append(
                     {
                         "test_name": test_name,
@@ -339,6 +331,21 @@ def parse_results_chart_json(results_dir_path):
                         "value": summary["value"],
                     }
                 )
+    return results_chart_data
+
+
+def parse_results_chart_json(results_dir_path):
+    """Parse the results-chart.json files from tests folder."""
+    results_chart_data = []
+    tests_path = CHROMIUMOS_RESULTS_DIR / results_dir_path / "tests"
+    for test_dir in tests_path.iterdir():
+        data = extract_results_chart(
+            tests_path / test_dir / "results-chart.json"
+        )
+        if data:
+            results_chart_data.extend(data)
+        else:
+            print(f"Warn: No results be produced in {test_dir.name}")
     return results_chart_data
 
 
