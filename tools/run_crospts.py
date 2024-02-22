@@ -204,7 +204,8 @@ def is_4g_ram(dut):
         mem_size = int(match.group(1))
     else:
         raise RuntimeError("No MemTotal value be found")
-    return mem_size < 4000000
+    # The 4GB is 4194304 kB
+    return mem_size < 4194304
 
 
 def tast_test_name(test_name, arch):
