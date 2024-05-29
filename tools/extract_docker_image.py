@@ -301,7 +301,7 @@ def main():
         archive.upload(pts_tarball, common.BUCKET_TEST_ASSETS_PUBLIC_URL)
 
     if args.uprev:
-        strip_version_pattern = (r"-\d{8}.\d{6}",)
+        strip_version_pattern = r"-\d{8}.\d{6}"
         base_external_data_name = (
             re.sub(strip_version_pattern, "", base_tarball.name) + ".external"
         )
